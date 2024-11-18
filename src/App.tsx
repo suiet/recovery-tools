@@ -1,9 +1,7 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { Buffer } from "buffer";
-import { Account, GlobalMeta, SuietBackup, TokenTool } from "./core";
+import { GlobalMeta, SuietBackup, TokenTool } from "./core";
 import { decryptMnemonic, decryptPrivateKey } from "./core/crypto";
 import { SignatureScheme, SupportedEncoding } from "./core/SuiKeypairUtil";
 import { SuiKeypairUtil } from "./core/SuiKeypairUtil";
