@@ -1,50 +1,68 @@
-# React + TypeScript + Vite
+# Suiet Wallet Recovery Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A secure offline tool to recover your Suiet wallet data from backup. This tool helps you extract your wallet's mnemonic phrases and private keys from an encrypted backup.
 
-Currently, two official plugins are available:
+## ⚠️ Security Warnings
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **ONLY download the tool from our official GitHub releases**
+   - Go to [Releases](https://github.com/suiet/recovery-tools/releases)
+   - Download `suiet-recovery-tool.zip` from the latest release
+   - Do NOT trust any other sources
 
-## Expanding the ESLint configuration
+2. **Use the tool OFFLINE**
+   - Disconnect your internet before using the tool
+   - Your sensitive data should never leave your computer
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## How to Use
 
-- Configure the top-level `parserOptions` property like this:
+1. **Download and Extract**
+   - Download `suiet-recovery-tool.zip` from GitHub releases
+   - Extract the ZIP file to a folder
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+2. **Open the Tool**
+   - Recommended: Use VSCode with "Live Server" extension
+     1. Install [VSCode](https://code.visualstudio.com/)
+     2. Install [Live Server extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
+     3. Open the extracted folder in VSCode
+     4. Right-click `index.html` and select "Open with Live Server"
+   
+   - Alternative: Use any local HTTP server
+     - Python: `python -m http.server`
+     - Node.js: `npx serve`
+     - DO NOT open the HTML file directly (it won't work due to browser security)
+
+3. **Get Your Backup Data**
+   1. Open your Suiet wallet extension
+   2. Right-click and select "Inspect" to open Developer Tools
+   3. Find outputs containing "DB_BACKUP_..."
+   4. Right-click and select "Copy Object"
+
+4. **Recover Your Wallet**
+   1. **DISCONNECT YOUR INTERNET**
+   2. Paste the backup data into the tool
+   3. Enter your wallet password
+   4. Click "Recover"
+   5. Save the recovered data securely
+   6. Close the tool
+
+## Support
+
+- Join our [Discord](https://discord.gg/KU3cR4zR)
+- Report issues on [GitHub](https://github.com/suiet/recovery-tools/issues)
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## License
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+MIT
