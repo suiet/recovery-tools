@@ -70,13 +70,10 @@ function App() {
     for (const wallet of backup.wallets) {
       let mnemonic: string | null = null;
       if (wallet.encryptedMnemonic) {
-        console.warn(
-          `No encrypted mnemonic found from wallet ${wallet.id}, skip it.`
-        );
         mnemonic = decryptMnemonic(token, wallet.encryptedMnemonic);
       } else {
         console.warn(
-          `Non-recoverable wallet ${wallet.id}, no encrypted mnemonic or private key found from backup`
+          `[wallet ${wallet.id}]: no encrypted mnemonic`
         );
       }
 
@@ -103,12 +100,12 @@ function App() {
               );
             } else {
               console.warn(
-                `Non-recoverable account ${account.id}, invalid private key found from backup`
+                `[account ${account.id}]: invalid private key`
               );
             }
           } else {
             console.warn(
-              `Non-recoverable account ${account.id}, no encrypted private key found from backup`
+              `[account ${account.id}]: no encrypted private key`
             );
           }
         }
@@ -255,12 +252,14 @@ function App() {
       </p>
       <p style={{ maxWidth: "600px", margin: "0 auto" }}>
         1. Open your Suiet wallet extesion, right click the Suiet Extension UI
-        and select "Inspect" to open Developer Tools
+        and select "Inspect" to open Developer Tools, then choose "Console" tab.
       </p>
       <p style={{ maxWidth: "600px", margin: "0 auto" }}>
-        2. Find outputs that contain "DB_BACKUP_..." (maybe folded as "Object"),
-        right click besides the small toggle, and then select "Copy Object",
-        paste the JSON data below.
+        2. Manually type (paste wouldn't work) the command at the bottom of the console and press Enter:
+        <br/>
+        <code style={{ fontWeight: "bold" , backgroundColor: "#f5f5f5"}}>await chrome.storage.local.get()</code>
+        <br/>
+        then right click the output and select "Copy Object", paste the JSON data below.
       </p>
       <p
         style={{
