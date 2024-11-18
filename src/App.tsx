@@ -285,8 +285,8 @@ function App() {
         fontWeight: "bold",
         backgroundColor: "#ffebee",
       }}>
-        5. ⚠️ Save your recovered wallet data to a ABSOLUTELY SAFE place, and you can
-        import the wallet data to a new Suiet wallet extension.
+        5. ⚠️ Save your recovered wallet data to a ABSOLUTELY SAFE place, then CLOSE this page!
+        You can import the wallet data to a new Suiet wallet extension later.
       </p>
       <p style={{ maxWidth: "600px", margin: "0 auto" }}>
         6. If you have any questions, please contact us via{" "}
