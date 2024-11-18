@@ -21,12 +21,17 @@ async function validateToken(
   return true;
 }
 
+interface RecoveryResult {
+  backupKey: string;
+  backupDate: string;
+  wallets: Record<string, any>;
+}
+
 function App() {
-  const [count, setCount] = useState(0);
   const [backupJson, setBackupJson] = useState("");
   const [password, setPassword] = useState("");
-  const [recoveryOutput, setRecoveryOutput] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [recoveryResults, setRecoveryResults] = useState<RecoveryResult[]>([]);
+  const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
   const [isRecovering, setIsRecovering] = useState(false);
 
   const extractDbBackupFromBackupJson = (backupJson: Record<string, any>) => {
@@ -131,80 +136,64 @@ function App() {
     return walletMap;
   };
 
-  const recoverAccountInfo = async (
-    backupJson: Record<string, any>,
-    password: string
-  ) => {
-    const dbBackupMap = extractDbBackupFromBackupJson(backupJson);
-
-    const dbBackupKeysByLatest = Object.keys(dbBackupMap).sort((a, b) => {
-      return b.localeCompare(a); // Sort descending
-    });
-    const latestDbBackupKey = dbBackupKeysByLatest[0];
-    console.log("Latest db backup key:", latestDbBackupKey);
-
-    for (const key of dbBackupKeysByLatest) {
-      try {
-        const walletMap = await recoverWalletDataFromOneBackup(
-          dbBackupMap[key],
-          password
-        );
-        console.log(`Successfully recovered from backup [${key}]:`, walletMap);
-        return [key, walletMap];
-      } catch (error) {
-        console.error(`Failed to recover from backup [${key}]: `, error);
-      }
-    }
-    return null;
-  };
+  const handleCopy = (backupKey: string, content: string) => {
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        setCopySuccess(prev => ({ ...prev, [backupKey]: true }))
+        setTimeout(() => {
+          setCopySuccess(prev => ({ ...prev, [backupKey]: false }))
+        }, 2000)
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err)
+        alert('Failed to copy to clipboard')
+      })
+  }
 
   const handleRecover = async (dbBackupJson: string, password: string) => {
     try {
-      setIsRecovering(true);
-      setRecoveryOutput("");
-      const backup = JSON.parse(dbBackupJson) as SuietBackup;
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const result = await recoverAccountInfo(backup, password);
-      if (result) {
-        const [backupKey, walletMap] = result;
-        let timestamp = backupKey.split("_")?.[2];
-        console.log("timestamp", timestamp);
-        timestamp = new Date(parseInt(timestamp)).toLocaleString();
-
-        const outputText = JSON.stringify(
-          { backupDate: timestamp, backupKey: backupKey, wallets: walletMap },
-          null,
-          2
-        );
-        setRecoveryOutput(outputText);
-        alert(
-          `Successfully recovered from backup [${backupKey}], check the output below!`
-        );
+      setIsRecovering(true)
+      setRecoveryResults([])
+      const backup = JSON.parse(dbBackupJson) as SuietBackup
+      const dbBackupMap = extractDbBackupFromBackupJson(backup)
+      
+      const results: RecoveryResult[] = []
+      
+      // Sort backup keys by date (newest first)
+      const dbBackupKeys = Object.keys(dbBackupMap).sort((a, b) => b.localeCompare(a))
+      
+      for (const key of dbBackupKeys) {
+        try {
+          const walletMap = await recoverWalletDataFromOneBackup(dbBackupMap[key], password)
+          let timestamp = key.split('_')?.[2]
+          const date = new Date(parseInt(timestamp)).toLocaleString()
+          
+          results.push({
+            backupKey: key,
+            backupDate: date,
+            wallets: walletMap
+          })
+          
+          console.log(`Successfully recovered from backup [${key}]:`, walletMap)
+        } catch (error) {
+          console.error(`Failed to recover from backup [${key}]: `, error)
+          // Continue to next backup even if this one fails
+        }
+      }
+      
+      if (results.length > 0) {
+        setRecoveryResults(results)
+        alert(`Successfully recovered ${results.length} backups! Check the output below.`)
       } else {
-        setRecoveryOutput("No valid backup found");
-        alert("No valid backup found");
+        alert('No valid backups found')
       }
     } catch (error) {
-      console.error(error);
-      setRecoveryOutput(`Error: ${error}`);
-      alert("Failed to recover from backup: " + error);
+      console.error(error)
+      alert('Failed to recover from backup: ' + error)
     } finally {
-      setIsRecovering(false);
+      setIsRecovering(false)
     }
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard
-      .writeText(recoveryOutput)
-      .then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
-      })
-      .catch((err) => {
-        console.error("Failed to copy:", err);
-        alert("Failed to copy to clipboard");
-      });
-  };
+  }
 
   return (
     <>
@@ -302,60 +291,72 @@ function App() {
         .
       </p>
       <div className="card">
-        <textarea
+        <textarea 
           value={backupJson}
           onChange={(e) => setBackupJson(e.target.value)}
-          placeholder="Suiet Backup JSON"
+          placeholder="Suiet Backup JSON" 
           rows={10}
-          style={{ width: "100%", minHeight: "200px", marginBottom: "10px" }}
+          style={{ width: '100%', minHeight: '200px', marginBottom: '10px' }}
         />
-        <input
+        <input 
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          style={{ marginBottom: "10px", width: "100%" }}
+          placeholder="Password" 
+          style={{ marginBottom: '10px', width: '100%' }}
         />
-        <button
+        <button 
           onClick={() => handleRecover(backupJson, password)}
-          style={{
-            marginBottom: "10px",
-            width: "100%",
+          style={{ 
+            marginBottom: '10px', 
+            width: '100%',
             opacity: isRecovering ? 0.7 : 1,
-            cursor: isRecovering ? "not-allowed" : "pointer",
-            color: isRecovering ? "#ccc" : "inherit",
+            cursor: isRecovering ? 'not-allowed' : 'pointer'
           }}
           disabled={isRecovering}
         >
-          {isRecovering ? "Recovering..." : "Recover"}
+          {isRecovering ? 'Recovering...' : 'Recover'}
         </button>
-        <textarea
-          value={recoveryOutput}
-          readOnly
-          placeholder="Recovery output will appear here..."
-          rows={10}
-          style={{
-            width: "100%",
-            minHeight: "200px",
-            backgroundColor: "#f5f5f5",
-            fontFamily: "monospace",
-            marginBottom: recoveryOutput ? "10px" : "0", // Add margin only when there's output
-          }}
-        />
-        {recoveryOutput && (
-          <button
-            onClick={handleCopy}
-            style={{
-              width: "100%",
-              backgroundColor: copySuccess ? "#4CAF50" : undefined,
+
+        {recoveryResults.map((result, index) => (
+          <div 
+            key={result.backupKey}
+            style={{ 
+              marginBottom: '20px',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '4px'
             }}
           >
-            {copySuccess ? "Copied!" : "Copy Output"}
-          </button>
-        )}
+            <h3 style={{ margin: '0 0 10px 0' }}>
+              Backup #{index + 1} - {result.backupDate}
+            </h3>
+            <textarea 
+              value={JSON.stringify(result, null, 2)}
+              readOnly
+              rows={10}
+              style={{ 
+                width: '100%', 
+                minHeight: '200px',
+                backgroundColor: '#f5f5f5',
+                fontFamily: 'monospace',
+                marginBottom: '10px'
+              }}
+            />
+            <button 
+              onClick={() => handleCopy(result.backupKey, JSON.stringify(result, null, 2))}
+              style={{ 
+                width: '100%',
+                backgroundColor: copySuccess[result.backupKey] ? '#4CAF50' : undefined 
+              }}
+            >
+              {copySuccess[result.backupKey] ? 'Copied!' : 'Copy Output'}
+            </button>
+          </div>
+        ))}
       </div>
     </>
-  );
+  )
 }
 
 export default App;
