@@ -47,7 +47,7 @@ A secure offline tool to recover your Suiet wallet data from backup. This tool h
 
 ## Support
 
-- Join our [Discord](https://discord.gg/KU3cR4zR)
+- Join our [Discord](https://discord.gg/KU3cR4zR) and open a ticket in #ticket channel.
 - Report issues on [GitHub](https://github.com/suiet/recovery-tools/issues)
 
 ## Development
